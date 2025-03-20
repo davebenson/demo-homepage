@@ -29,3 +29,23 @@ if (process.env.PORT_SECURE) {
 }
 console.log('setting up static routes');
 app.use(express.static('../homepage-frontend/dist'));
+
+function dropPermissions(user, group) {
+  try {
+    if (process.getuid() === 0) {
+      process.setgid(group);
+      process.setuid(user);
+      console.log(`Process permissions dropped to user: ${user}, group: ${group}`);
+    } else {
+      console.log("Script not started with root privileges, cannot drop permissions.");
+    }
+  } catch (err) {
+    console.error("Failed to drop permissions:", err);
+    process.exit(1);
+  }
+}
+
+if (credentials.drop_permissions) {
+  const id = credentials.drop_permissions;
+  dropPermissions(id,id);
+}
