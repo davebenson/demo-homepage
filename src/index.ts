@@ -3,6 +3,7 @@ import proxy from = 'express-http-proxy';
 
 import {setupAcmeRoutes} from './acme.ts';
 import credentials from './credentials.ts';
+import https from 'node:https';
 
 
 const app_insecure = express();
@@ -11,7 +12,16 @@ const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 //  res.send('hello world');
 //});
 setupAcmeRoutes(app_insecure);
-app_insecure.listen(port);
+
+function doListen(app, port)
+{
+  return new Promise((res,rej) => {
+    app.listen(port, () => res());
+  });
+  app.on('connect', () => console.log(`got connection on port ${port}`));
+}
+
+await doListen(app_insecure, port);
 
 console.log('setup acme routes?');
 
@@ -19,13 +29,13 @@ let app;
 if (process.env.PORT_SECURE) {
   app = express();
   const port = process.env.PORT_SECURE ? parseInt(process.env.PORT_SECURE) : 3001;
-  app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-  });
-  https.createServer({
-      key: privateKey,
-      cert: certificate
-  }, app).listen(port);
+  //app.listen(port, () => {
+  //  console.log(`Example app listening on port ${port}`)
+  //});
+  await doListen(https.createServer({
+      key: credentials.ssl_cert.key.replaceAll("\n","\r\n"),
+      cert: credentials.ssl_cert.cert.replaceAll("\n","\r\n")
+  }, app), port);
 } else {
   app = app_insecure;
 }
@@ -56,3 +66,7 @@ if (credentials.robogen_proxy) {
   app.use('/robogen', proxy(`http://localhost:${credentials.robogen_proxy}/robogen`));
 }
 
+if (credentials.drop_permissions) {
+  const id = credentials.drop_permissions;
+  dropPermissions(id,id);
+}
