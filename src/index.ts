@@ -1,4 +1,6 @@
 import express from 'express';
+import proxy from = 'express-http-proxy';
+
 import {setupAcmeRoutes} from './acme.ts';
 import credentials from './credentials.ts';
 
@@ -49,3 +51,8 @@ if (credentials.drop_permissions) {
   const id = credentials.drop_permissions;
   dropPermissions(id,id);
 }
+
+if (credentials.robogen_proxy) {
+  app.use('/robogen', proxy(`http://localhost:${credentials.robogen_proxy}/robogen`));
+}
+
