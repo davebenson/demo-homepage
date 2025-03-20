@@ -1,0 +1,5 @@
+#! /bin/sh
+
+: ${APP_ENV:=local}
+
+node src/tools/dump-credentials.ts $APP_ENV
