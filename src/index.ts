@@ -1,5 +1,5 @@
 import express from 'express';
-import proxy from = 'express-http-proxy';
+import proxy from 'express-http-proxy';
 
 import {setupAcmeRoutes} from './acme.ts';
 import credentials from './credentials.ts';
@@ -63,7 +63,15 @@ if (credentials.drop_permissions) {
 }
 
 if (credentials.robogen_proxy) {
-  app.use('/robogen', proxy(`http://localhost:${credentials.robogen_proxy}/robogen`));
+	console.log(`setting up robogen proxy`);
+  app.use('/robogen', proxy(`http://localhost:${credentials.robogen_proxy}/`, {
+    proxyReqOptDecorator: (proxyReqOpts, originalReq) => {
+      proxyReqOpts.headers['Host'] = 'thedavebenson.com';
+      proxyReqOpts.headers['X-Forwarded-Host'] = 'thedavebenson.com';
+      proxyReqOpts.headers['Origin'] = 'https://thedavebenson.com';
+      return proxyReqOpts;
+    }
+  }));
 }
 
 if (credentials.drop_permissions) {
