@@ -5,6 +5,7 @@ import {setupAcmeRoutes} from './acme.ts';
 import credentials from './credentials.ts';
 import https from 'node:https';
 import httpProxy from 'http-proxy';
+import fs from 'node:fs/promises';
 
 
 const app_insecure = express();
@@ -43,8 +44,11 @@ if (process.env.PORT_SECURE) {
 console.log('setting up static routes');
 app.use(express.static('../homepage-frontend/dist'));
 
+await fs.writeFile('server.pid', `${process.pid}\n`);
+
 function dropPermissions(user, group) {
   try {
+	  console.log(`dropPermissions: getuid=${process.getuid()}`);
     if (process.getuid() === 0) {
       process.setgid(group);
       process.setuid(user);
@@ -56,11 +60,6 @@ function dropPermissions(user, group) {
     console.error("Failed to drop permissions:", err);
     process.exit(1);
   }
-}
-
-if (credentials.drop_permissions) {
-  const id = credentials.drop_permissions;
-  dropPermissions(id,id);
 }
 
 if (credentials.robogen_proxy) {
