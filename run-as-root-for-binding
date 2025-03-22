@@ -1,0 +1,8 @@
+#! /bin/sh
+
+. /home/ec2-user/.nvm/nvm.sh
+echo -n 'prod key: '
+read PRODUCTION_CREDENTIALS_PASSWORD
+export PRODUCTION_CREDENTIALS_PASSWORD
+APP_ENV=production PORT=80 PORT_SECURE=443 nohup npm start >& server-`date +%s`.log &
+
